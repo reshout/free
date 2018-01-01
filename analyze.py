@@ -4,11 +4,12 @@ import pandas
 from pandas import DataFrame
 from os import listdir
 from random import shuffle
+from market import Market
 
 
 def get_items(market):
     items = []
-    for file in listdir('./{}'.format(market)):
+    for file in listdir('./{}'.format(market.value)):
         if file.endswith('.csv'):
             (code, name) = file.split(sep='.')[0].split(sep='-', maxsplit=1)
             items.append((code, name))
@@ -16,7 +17,7 @@ def get_items(market):
 
 
 def gen_data(market, code, name):
-    stock_data = pandas.read_csv('./{}/{}-{}.csv'.format(market, code, name))
+    stock_data = pandas.read_csv('./{}/{}-{}.csv'.format(market.value, code, name))
     stock_data = DataFrame(stock_data, columns=['Close'])
     M = stock_data.as_matrix()
     length = M.shape[0] 
@@ -34,17 +35,12 @@ def gen_data(market, code, name):
     return (X, y)
 
 
-kospi_items = get_items('KOSPI')
+kospi_items = get_items(Market.KOSPI)
 shuffle(kospi_items)
-(X, y) = gen_data('KOSPI', kospi_items[0][0], kospi_items[0][1])
+(X, y) = gen_data(Market.KOSPI, kospi_items[0][0], kospi_items[0][1])
 
 X_data = np.float32(X).transpose()
 y_data = np.float32(y)
-
-print(X_data.shape)
-print(X_data)
-print(y_data.shape)
-print(y_data)
 
 b = tf.Variable(tf.zeros([1]))
 W = tf.Variable(tf.random_uniform([1, X_data.shape[0]]))
@@ -53,7 +49,7 @@ loss = tf.reduce_mean(tf.square(y_predict - y_data))
 optimizer = tf.train.GradientDescentOptimizer(0.01)
 train = optimizer.minimize(loss)
 
-(X2, y2) = gen_data('KOSPI', kospi_items[1][0], kospi_items[1][1])
+(X2, y2) = gen_data(Market.KOSPI, kospi_items[1][0], kospi_items[1][1])
 X2_data = np.float32(X2).transpose()
 y2_data = np.float32(y2)
 y2_predict = tf.matmul(W, X2_data) + b
